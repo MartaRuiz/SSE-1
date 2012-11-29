@@ -11,7 +11,9 @@ import java.util.*;
  * @author Marta
  */
 public class Keys {
-      Map<String, SortedSet<String>> map;
+    String longest = "";
+    
+    Map<String, SortedSet<String>> map;
 
     public Keys(){
         map = new TreeMap<String, SortedSet<String>>();
