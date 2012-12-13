@@ -8,6 +8,6 @@ package sse1;
  *
  * @author Marta
  */
-public class Library {
+public interface Document {
     
 }
