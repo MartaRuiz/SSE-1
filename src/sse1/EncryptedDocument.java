@@ -4,10 +4,12 @@
  */
 package sse1;
 
+import java.security.Key;
+
 /**
  *
  * @author Marta
  */
 public class EncryptedDocument implements Document{
-    
+
 }

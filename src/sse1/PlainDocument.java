@@ -9,6 +9,7 @@ package sse1;
  * @author Marta
  */
 public class PlainDocument implements Document {
-    
+    String doc;
+    String id;
     
 }

@@ -9,5 +9,5 @@ package sse1;
  * @author Marta
  */
 public interface Document {
-    
+
 }

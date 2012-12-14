@@ -12,9 +12,41 @@ import java.util.*;
  */
 public class Index {
     String longest = "";
-    Map<String, SortedSet<String>> map;
+    Map<String, SortedSet<Document>> map;
+       
+    public Index(String keyword, Document doc){ 
+        if(keyword.length() > longest.length()){
+            longest = keyword;
+        }
 
-    public Index(){
-        map = new TreeMap<String, SortedSet<String>>();
+        SortedSet<Document> list = map.get(keyword);
+        if(list==null){
+            //TreeSet no permite elementos duplicados
+            list = new TreeSet<Document>();
+        }
+        list.add(doc);
+
+        map.put(keyword, list);
+    }
+    
+    public Index(Document doc){
+        
+    }
+
+    public List<String> getKeywords(){
+        return new ArrayList<String>(map.keySet());
+    }
+
+    public TreeSet<Document> getDocuments(String keyword){
+        return new TreeSet<Document>(map.get(keyword));
+    }
+
+    public Map<String, SortedSet<Document>> getMap(){
+        return map;
+    }
+
+    public int numberOfKeywords(){
+        return map.size();
     }
 }
+
