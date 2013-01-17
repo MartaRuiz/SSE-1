@@ -9,5 +9,8 @@ package sse1;
  * @author Marta
  */
 public interface Document {
+            
+    public String getId();
+    public String getPath();
 
 }

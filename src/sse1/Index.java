@@ -11,22 +11,13 @@ import java.util.*;
  * @author Marta
  */
 public class Index {
-    String longest = "";
+
     Map<String, SortedSet<Document>> map;
-       
-    public Index(String keyword, Document doc){ 
-        if(keyword.length() > longest.length()){
-            longest = keyword;
-        }
-
-        SortedSet<Document> list = map.get(keyword);
-        if(list==null){
-            //TreeSet no permite elementos duplicados
-            list = new TreeSet<Document>();
-        }
-        list.add(doc);
-
-        map.put(keyword, list);
+    
+    public Index(Library lib, String[] keywords){ 
+          for(String str:keywords){
+              
+          }
     }
     
     public Index(Document doc){
