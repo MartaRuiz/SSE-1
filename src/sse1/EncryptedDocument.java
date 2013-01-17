@@ -30,4 +30,6 @@ public class EncryptedDocument implements Document{
     public String getPath(){
         return path;
     }
+    
+    
 }

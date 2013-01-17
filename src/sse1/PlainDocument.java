@@ -43,8 +43,12 @@ public class PlainDocument implements Document {
                     }
             }
             
-        }catch(FileNotFoundException e) {
-        }catch(IOException e) {
+        }
+        catch(FileNotFoundException e) {
+            e.printStackTrace();
+        }
+        catch(IOException e) {
+            e.printStackTrace();
         }
         
         return ok;
