@@ -10,6 +10,8 @@ package sse1;
  */
 public class SSEIndex {
     public static void main(String[] args){
+        
+        
        
     }
 }

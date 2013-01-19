@@ -3,6 +3,8 @@
  * and open the template in the editor.
  */
 package sse1;
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -14,9 +16,7 @@ import java.security.NoSuchAlgorithmException;
 import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
 import javax.crypto.IllegalBlockSizeException;
-import javax.crypto.KeyGenerator;
 import javax.crypto.NoSuchPaddingException;
-import javax.crypto.SecretKey;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 
@@ -58,16 +58,34 @@ public class EncryptedDocument implements Document{
     
     public void cipher(PlainDocument doc){
         try{
+           
+           
+            byte [] encryptedData;
+  
+            // Se abre el fichero original para lectura
             File f = new File(doc.getId() + ".txt"); 
-            FileInputStream in = new FileInputStream(f);
             byte [] plainData = new byte[(int)f.length()] ;
-            in.read(plainData);
             
-            byte [] encryptedData = cipher.doFinal(plainData);
+            FileInputStream in = new FileInputStream(f);
+            BufferedInputStream bufferedInput = new BufferedInputStream(in);
+			
+            // Se abre el fichero donde se hará la copia
+            FileOutputStream out = new FileOutputStream (doc.getId() +"-cipher.txt");
+            BufferedOutputStream bufferedOutput = new BufferedOutputStream(out);
             
-            FileOutputStream target = new FileOutputStream (new File (doc.getId()+ "-cipher" + ".txt"));
-            target.write(encryptedData);
-            target.close();
+            int leidos = bufferedInput.read(plainData);
+            
+            while (leidos > 0)
+            {
+                    encryptedData = cipher.doFinal(plainData);
+                    bufferedOutput.write(encryptedData,0,leidos);
+                    leidos=bufferedInput.read(plainData);
+            }
+
+            // Cierre de los ficheros
+            bufferedInput.close();
+            bufferedOutput.close();
+
         }
         catch(FileNotFoundException e) {
             e.printStackTrace();
