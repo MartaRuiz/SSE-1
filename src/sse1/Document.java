@@ -12,5 +12,5 @@ public interface Document {
             
     public String getId();
     public String getPath();
-
+    public String toString();
 }

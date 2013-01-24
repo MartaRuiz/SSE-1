@@ -44,7 +44,7 @@ public class Index {
                 //Buscar si existe una palabra
                 String  line;
                 while((line = bufferedReader.readLine())!=null){
-                    StringTokenizer st = new StringTokenizer(line.toLowerCase(), ". \t,:;?!¡¿-");
+                    StringTokenizer st = new StringTokenizer(line.toLowerCase(), ". \t,:;?!¡¿-·");
                     while(st.hasMoreTokens()){
                         String token = st.nextToken();
                         if(!map.containsKey(token)){
@@ -84,5 +84,6 @@ public class Index {
     public int numberOfKeywords(){
         return map.size();
     }
+   
 }
 

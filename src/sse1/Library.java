@@ -23,5 +23,8 @@ public class Library {
         if (!documentList.contains(doc)){
             documentList.add(doc);
         } 
+        else{
+            System.out.println("El documento ya estaba");
+        }
     }
 }

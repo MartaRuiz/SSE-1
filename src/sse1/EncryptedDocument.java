@@ -35,7 +35,7 @@ public class EncryptedDocument implements Document{
 
 
    public EncryptedDocument(String identifier, String route) throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, InvalidAlgorithmParameterException{
-       id = identifier;
+       id = identifier + "-e";
        path = route;
        skey = new SecretKeySpec(r, "AES");
        IvParameterSpec ivParameterSpec = new IvParameterSpec(iv);
@@ -82,6 +82,8 @@ public class EncryptedDocument implements Document{
                     leidos=bufferedInput.read(plainData);
             }
 
+            System.out.println("Encriptado");
+            
             // Cierre de los ficheros
             bufferedInput.close();
             bufferedOutput.close();
@@ -100,5 +102,9 @@ public class EncryptedDocument implements Document{
             e.printStackTrace();
         }
         
+    }
+    
+    public String toString(){
+        return (getId());
     }
 }

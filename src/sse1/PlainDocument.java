@@ -53,4 +53,7 @@ public class PlainDocument implements Document {
         
         return ok;
     }
+    public String toString(){
+        return (getId());
+    }
 }
