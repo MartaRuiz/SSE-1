@@ -3,22 +3,26 @@
  * and open the template in the editor.
  */
 package sse1;
-import java.io.BufferedInputStream;
-import java.io.BufferedOutputStream;
+
+import com.sun.org.apache.xerces.internal.impl.dv.util.Base64;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
+import java.io.FileReader;
+import java.io.FileWriter;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
+import java.security.Key;
 import java.security.NoSuchAlgorithmException;
-import javax.crypto.BadPaddingException;
+import java.security.spec.InvalidKeySpecException;
 import javax.crypto.Cipher;
-import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
-import javax.crypto.spec.IvParameterSpec;
+import javax.crypto.SecretKey;
+import javax.crypto.SecretKeyFactory;
+import javax.crypto.spec.DESKeySpec;
 import javax.crypto.spec.SecretKeySpec;
+
 
 /**
  *
@@ -26,25 +30,20 @@ import javax.crypto.spec.SecretKeySpec;
  */
 public class EncryptedDocument implements Document{
 
-   String id;
-   String path;
-   SecretKeySpec skey;
-   Cipher cipher;
-   byte[] r = new byte[] {0x0,0x1,0x2,0x3,0x4,0x5,0x6,0x7,0x8,0x9,0xA,0xB,0xC,0xD,0xE,0xF };
-   byte[] iv = new byte[] {0x0,0x1,0x2,0x3,0x4,0x5,0x6,0x7,0x8,0x9,0xA,0xB,0xC,0xD,0xE,0xF };
-
-
-   public EncryptedDocument(String identifier, String route) throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, InvalidAlgorithmParameterException{
-       id = identifier + "-e";
+   private String id;
+   private String path;
+   
+   private static final byte[] keyValue = new byte[] { 'T', 'h', 'e', 'B',
+			'e', 's', 't', 'S', 'e', 'c', 'r', 'e', 't', 'K', 'e', 'y' };
+   
+   private Key key;
+   
+   public EncryptedDocument(String identifier, String route) throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, InvalidAlgorithmParameterException, InvalidKeySpecException{
+       id = identifier;
        path = route;
-       skey = new SecretKeySpec(r, "AES");
-       IvParameterSpec ivParameterSpec = new IvParameterSpec(iv);
-       
-        // Usa la clase engine para obtener una implementación del AES
-       cipher = Cipher.getInstance("AES/OFB/PKCS5Padding");
+ 
+       key = new SecretKeySpec(keyValue, "AES");
 
-        //cifra en un solo paso
-        cipher.init(Cipher.ENCRYPT_MODE, skey,ivParameterSpec);
    }
    
        public String getId(){
@@ -56,53 +55,106 @@ public class EncryptedDocument implements Document{
         return path;
     }
     
-    public void cipher(PlainDocument doc){
-        try{
-           
-           
-            byte [] encryptedData;
-  
-            // Se abre el fichero original para lectura
-            File f = new File(doc.getId() + ".txt"); 
-            byte [] plainData = new byte[(int)f.length()] ;
-            
-            FileInputStream in = new FileInputStream(f);
-            BufferedInputStream bufferedInput = new BufferedInputStream(in);
-			
-            // Se abre el fichero donde se hará la copia
-            FileOutputStream out = new FileOutputStream (doc.getId() +"-cipher.txt");
-            BufferedOutputStream bufferedOutput = new BufferedOutputStream(out);
-            
-            int leidos = bufferedInput.read(plainData);
-            
-            while (leidos > 0)
-            {
-                    encryptedData = cipher.doFinal(plainData);
-                    bufferedOutput.write(encryptedData,0,leidos);
-                    leidos=bufferedInput.read(plainData);
+    public void encryptFile(PlainDocument doc){
+        try {
+                BufferedReader br = new BufferedReader(new FileReader(doc.getId() + ".txt"));
+                StringBuilder sb = new StringBuilder();
+
+                File file = new File(doc.getId() + "-cipher.txt");
+
+                // if file doesnt exists, then create it
+                if (!file.exists()) {
+                        file.createNewFile();
+                }
+                
+                FileWriter fw = new FileWriter(file.getAbsoluteFile());
+                BufferedWriter bw = new BufferedWriter(fw);
+
+                String line = br.readLine();
+
+                while (line != null) {
+                        sb.append(line);
+                        sb.append("\n");
+                        line = br.readLine();
+
+                }
+                
+                String everything = sb.toString();
+                everything = encrypt(everything);
+                
+                bw.write(everything);
+                bw.close();
+                br.close();
+                System.out.println("Archivo Encriptado");
+                
+            } 
+            catch (FileNotFoundException e) {
+                    e.printStackTrace();
+            } 
+            catch (Exception e) {
+                    e.printStackTrace();
             }
-
-            System.out.println("Encriptado");
-            
-            // Cierre de los ficheros
-            bufferedInput.close();
-            bufferedOutput.close();
-
-        }
-        catch(FileNotFoundException e) {
-            e.printStackTrace();
-        }
-        catch(IOException e) {
-            e.printStackTrace();
-        }
-        catch(IllegalBlockSizeException e){
-            e.printStackTrace();
-        }
-        catch(BadPaddingException e){
-            e.printStackTrace();
-        }
-        
     }
+    
+    	private String encrypt(String Data) throws Exception {
+            
+            Cipher c = Cipher.getInstance("AES");
+            c.init(Cipher.ENCRYPT_MODE, key);
+            byte[] encVal = c.doFinal(Data.getBytes());
+            String encryptedValue = Base64.encode(encVal);
+            // String encryptedValue = new BASE64Encoder().encode(encVal);
+            return encryptedValue;
+	}
+    
+    public void decryptFile(EncryptedDocument doc){
+    
+       try {
+            BufferedReader br = new BufferedReader(new FileReader(doc.getId()+".txt"));
+            StringBuilder sb = new StringBuilder();
+
+            File file = new File(doc.getId()+"-original.txt");
+
+            // if file doesnt exists, then create it
+            if (!file.exists()) {
+                    file.createNewFile();
+            }
+            FileWriter fw = new FileWriter(file.getAbsoluteFile());
+            BufferedWriter bw = new BufferedWriter(fw);
+
+            String line = br.readLine();
+
+            while (line != null) {
+                    sb.append(line);
+                    sb.append("\n");
+                    line = br.readLine();
+
+            }
+            String everything = sb.toString();
+            everything = decrypt(everything);
+            bw.write(everything);
+            bw.close();
+            br.close();
+            System.out.println("Archivo Desencriptado");
+            
+            } catch (FileNotFoundException e) {
+                    e.printStackTrace();
+            } catch (Exception e) {
+                    e.printStackTrace();
+            }
+    }
+
+    
+    private String decrypt(String encryptedData) throws Exception {
+		
+		Cipher c = Cipher.getInstance("AES");
+                c.init(Cipher.DECRYPT_MODE, key);
+		byte[] decordedValue = Base64.decode(encryptedData);
+		// byte[] decordedValue = new
+		// BASE64Decoder().decodeBuffer(encryptedData);
+		byte[] decValue = c.doFinal(decordedValue);
+		String decryptedValue = new String(decValue);
+		return decryptedValue;        
+    }  
     
     public String toString(){
         return (getId());
