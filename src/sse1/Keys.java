@@ -15,8 +15,6 @@ import javax.crypto.spec.SecretKeySpec;
 public class Keys {
    
    static SecureRandom sr = new SecureRandom();
-   /*static KeyGenerator ske1gen, ske2gen;
-   static Cipher ske1, ske2, randF;*/
    
     public static Key generateKey(int bits) {
         byte[] b = new byte[bits / 8];
