@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.Key;
+import java.util.Arrays;
 import java.util.Map;
 import java.util.Random;
 import java.util.TreeMap;
@@ -28,14 +29,22 @@ import javax.crypto.spec.IvParameterSpec;
 public class SSEIndex {
     
     static KeyGenerator ske1gen, ske2gen;
-    static Cipher ske1;
+    static Cipher ske1, randF;
     
-    public static void main(String[] args) throws FileNotFoundException, IOException, InvalidKeyException, IllegalBlockSizeException, InvalidAlgorithmParameterException, BadPaddingException {
+    public static void main(String[] args) throws FileNotFoundException, IOException, InvalidKeyException, IllegalBlockSizeException, InvalidAlgorithmParameterException, BadPaddingException, Exception {
         
         //1. Initialization
         int ctr = 1;
         int sizeBytes = 0;
+        int l= 128;
+        int k = 128;
         
+        
+        ske1gen = KeyGenerator.getInstance("AES");
+        ske1gen.init(k);
+        
+        ske1 = Cipher.getInstance("AES/CTR/NoPadding");
+        randF = Cipher.getInstance("AES/CTR/NoPadding");
         
         File f = new File("prueba1"); // Creamos un objeto file
         String path = f.getAbsolutePath(); // Llamamos al método que devuelve la ruta absoluta
@@ -57,18 +66,31 @@ public class SSEIndex {
         
         Index index = new Index(lib);
         
+        Keys K = new Keys();
+        Key[] aKeys = K.gen(k, l);
+        
         //2. Build array A
         Map<String, byte[]> array = new TreeMap<String, byte[]>(); 
+        Map<String, byte[]> table = new TreeMap<String, byte[]>();
         
         for (String keyword : index.getKeywords()){//build linked list Li with nodes Ni,j and store it in array A
-            Key prevKey = ske1gen.generateKey();
+            System.out.println("#####################");
+            System.out.println(keyword);
+            System.out.println("#####################");
+            
+            byte[] firstAddress = getAddress(ctr);
+            
+            Key prevKey = ske1gen.generateKey(); 
+            
+            
+            byte[] entry = tableEntry(keyword,aKeys[1],firstAddress, prevKey);
+            table.put(Util.hexArray(getAddress(keyword)), entry);
             
             TreeSet<Document> docsKeyword = index.getDocuments(keyword);
-            Document lastDoc = docsKeyword.pollLast();
             
             //Creating the list
             for(Document idDoc:docsKeyword){
-                Key key = ske1gen.generateKey();
+                SecretKey key = ske1gen.generateKey();
                 
                 byte[] node = createNode(idDoc.getId(), key, ctr+1);
                 
@@ -89,6 +111,7 @@ public class SSEIndex {
 
             }
             // Last node
+            Document lastDoc = docsKeyword.pollLast();
             SecretKey key = ske1gen.generateKey();
 
             byte[] node = createNode(lastDoc.getId(), key, 0);
@@ -152,6 +175,14 @@ public class SSEIndex {
         randomPermutation(c, 1234);
         return c;
     }
+    
+    public static byte[] getAddress(String w) {
+
+        byte[] c = Arrays.copyOf(w.getBytes(), 32);
+        //TODO: Clave
+        randomPermutation(c, 4321);
+        return c;
+    }
 
     private static void randomPermutation(byte[] array, long seed) {
         Random r = new Random(seed);
@@ -162,5 +193,42 @@ public class SSEIndex {
             array[j] = array[i];
             array[i] = aux;
         }
+    }
+
+    private static byte[] tableEntry(String w_i, Key y, byte[] addr, Key initKey) throws Exception {
+        // Pasamos la clave a un array de bytes
+        byte[] k_i_0 = initKey.getEncoded();
+
+        // Concatenación:
+        // -    Inicializamos value: Array de tamaño addr + k_i_0
+        byte[] primeraMitadValue = new byte[addr.length + k_i_0.length];
+        
+        // -    value[0,addr.length] = addr[0,addr.length]
+        System.arraycopy(addr, 0, primeraMitadValue, 0, addr.length);
+        // -    value[addr.length, addr.length+k_i_0.length] = k_i_0[0,k_i_0.length]
+        System.arraycopy(k_i_0, 0, primeraMitadValue, addr.length, k_i_0.length);
+
+
+        // Calcular f_y(wi):
+        // -    Pasar w_i a bytes
+        byte[] w_i_bytes = w_i.getBytes();
+
+        // -    ?
+        byte[] keyword = Arrays.copyOf(w_i_bytes, primeraMitadValue.length);
+
+        // -    Funcion aleatorio f con clave y
+        byte[] f_w_i = funcionPseudoAleatoria(y, keyword);
+
+        // value = primeraMitadValue XOR f_w_i
+        byte[] value = new byte[addr.length + k_i_0.length];
+        for(int i=0; i<f_w_i.length; i++){
+            value[i] = (byte) (f_w_i[i] ^ primeraMitadValue[i]);
+        }
+        return value;
+    }
+
+    public static byte[] funcionPseudoAleatoria(Key k, byte[] x) throws Exception{
+        randF.init(Cipher.ENCRYPT_MODE, k);//new IvParameterSpec(randF.getIV()));
+        return randF.doFinal(x);
     }
 }
