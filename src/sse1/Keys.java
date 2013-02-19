@@ -14,9 +14,9 @@ import javax.crypto.spec.SecretKeySpec;
  */
 public class Keys {
    
-   static SecureRandom sr = new SecureRandom();
+   private SecureRandom sr = new SecureRandom();
    
-    public static Key generateKey(int bits) {
+    public  Key generateKey(int bits) {
         byte[] b = new byte[bits / 8];
         sr.nextBytes(b);
         return new SecretKeySpec(b, "UNIFORM");
@@ -25,7 +25,7 @@ public class Keys {
         //UNIFORM clase que trabaja distribuciones uniformes
     }
     
-   public static byte[] int2byte(int[] values) throws IOException
+   public  byte[] int2byte(int[] values) throws IOException
    {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         DataOutputStream dos = new DataOutputStream(baos);
@@ -37,7 +37,7 @@ public class Keys {
         return baos.toByteArray();
    }
     
-   public static Key generateKey2(int l) throws IOException{
+   public  Key generateKey2(int l) throws IOException{
         //Cada 1 (int) ocupa 32 bits en java
         int b = l/32;
         int [] unos = new int[b];
@@ -49,15 +49,15 @@ public class Keys {
         return new SecretKeySpec(aB, "UNIFORM");
     }
 
-    public static Key[] Gen(int k, int l) throws Exception {
+    public  Key[] gen(int k, int l) throws Exception {
 
         // Initialize key generatos
 
         Key[] K = new Key[4];
 
-        K[0] = generateKey(k);
-        K[1] = generateKey(k);
-        K[2] = generateKey(k);
+        K[0] = generateKey(k);//s
+        K[1] = generateKey(k);//y
+        K[2] = generateKey(k);//z
         K[3] = generateKey2(l);
         
         return K;
