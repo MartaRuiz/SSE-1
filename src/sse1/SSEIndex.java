@@ -20,7 +20,6 @@ import javax.crypto.Cipher;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.KeyGenerator;
 import javax.crypto.SecretKey;
-import javax.crypto.spec.IvParameterSpec;
 
 /**
  *
@@ -44,7 +43,6 @@ public class SSEIndex {
         ske1gen.init(k);
         
         ske1 = Cipher.getInstance("AES/CTR/NoPadding");
-        randF = Cipher.getInstance("AES/CTR/NoPadding");
         
         File f = new File("prueba1"); // Creamos un objeto file
         String path = f.getAbsolutePath(); // Llamamos al método que devuelve la ruta absoluta
@@ -94,7 +92,7 @@ public class SSEIndex {
                 
                 byte[] node = createNode(idDoc.getId(), key, ctr+1);
                 
-                ske1.init(Cipher.ENCRYPT_MODE, prevKey, new IvParameterSpec(ske1.getIV()));
+                ske1.init(Cipher.ENCRYPT_MODE, prevKey);
                 byte[] cNode = ske1.doFinal(node);
 
                 byte[] addr = getAddress(ctr);
@@ -169,6 +167,8 @@ public class SSEIndex {
     }
 
     private static byte[] getAddress(int i) {
+
+        
         byte[] c = new byte[]{
             (byte) (i >>> 24), (byte) (i >>> 16), (byte) (i >>> 8), (byte) i};
         //TODO: Clave
@@ -228,7 +228,32 @@ public class SSEIndex {
     }
 
     public static byte[] funcionPseudoAleatoria(Key k, byte[] x) throws Exception{
+        
+        randF = Cipher.getInstance("AES/CTR/NoPadding");
         randF.init(Cipher.ENCRYPT_MODE, k);//new IvParameterSpec(randF.getIV()));
         return randF.doFinal(x);
+        //return x;
+    }
+    
+    public byte[][] trapdoor(String word, Key z, Key y) throws Exception{
+        byte[] wordToB = word.getBytes();
+        
+        byte[] fy = funcionPseudoAleatoria(y, wordToB);
+        
+        byte[] piz = getAddress(word);
+        
+        byte[][] tw = {piz, fy};
+        
+        return tw;
+    }
+    
+    public void search(TreeMap<String, byte[]> array, TreeMap<String, byte[]> table, byte[][] tw){
+        byte[] gamma = tw[0];
+        int pos = fromByteArray(gamma);
+        
+    }
+    
+    private int fromByteArray(byte[] bytes) {
+        return bytes[0] << 24 | (bytes[1] & 0xFF) << 16 | (bytes[2] & 0xFF) << 8 | (bytes[3] & 0xFF);
     }
 }

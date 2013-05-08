@@ -19,7 +19,7 @@ public class Keys {
     public  Key generateKey(int bits) {
         byte[] b = new byte[bits / 8];
         sr.nextBytes(b);
-        return new SecretKeySpec(b, "UNIFORM");
+        return new SecretKeySpec(b, "AES");
         
         //SecretKeySpec construye clave secreta a partir de un array de bytes
         //UNIFORM clase que trabaja distribuciones uniformes
@@ -46,7 +46,7 @@ public class Keys {
         }
         byte [] aB = int2byte(unos);
 
-        return new SecretKeySpec(aB, "UNIFORM");
+        return new SecretKeySpec(aB, "AES");
     }
 
     public  Key[] gen(int k, int l) throws Exception {

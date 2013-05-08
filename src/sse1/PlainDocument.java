@@ -10,7 +10,7 @@ import java.io.*;
  *
  * @author Marta
  */
-public class PlainDocument implements Document {
+public class PlainDocument implements Document, Comparable<PlainDocument>{
     String id;
     String path;
     
@@ -53,7 +53,17 @@ public class PlainDocument implements Document {
         
         return ok;
     }
+    @Override
     public String toString(){
         return (getId());
     }
+
+    public int compareTo(PlainDocument o) {
+        int res = new Integer((id).compareTo(o.id));
+        return res;
+    }
+    
+  
+    
+
 }
