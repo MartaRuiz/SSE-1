@@ -107,28 +107,12 @@ public class SSEIndex {
 
                 ctr++;
 
-            }
-            // Last node
-            Document lastDoc = docsKeyword.pollLast();
-            SecretKey key = ske1gen.generateKey();
-
-            byte[] node = createNode(lastDoc.getId(), key, 0);
-
-            ske1.init(Cipher.ENCRYPT_MODE, prevKey);//, new IvParameterSpec(ske1.getIV()));
-            byte[] cNode = ske1.doFinal(node);
-            byte[] addr = getAddress(ctr);
-
-            sizeBytes += cNode.length;
-            
-            array.put(Util.hexArray(addr), cNode);
-
-            System.out.println("Node (bytes): " + Util.hexArray(node));
-            System.out.print("A[" + Util.hexArray(addr) + "] = " + Util.hexArray(cNode));
-            System.out.println();
-
-            ctr++;
+            } 
         }
         
+        System.out.println("Num keywords: "+index.numberOfKeywords());
+        System.out.println("Num nodos del indice: " + ctr);
+        System.out.println("Size array KBytes: " + (sizeBytes/1024));
     }
 
     private static byte[] createNode(String idDoc, Key key, int i) {
