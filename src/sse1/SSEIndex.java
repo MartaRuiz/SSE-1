@@ -20,6 +20,7 @@ import javax.crypto.Cipher;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.KeyGenerator;
 import javax.crypto.SecretKey;
+import javax.crypto.spec.SecretKeySpec;
 
 /**
  *
@@ -251,11 +252,32 @@ public class SSEIndex {
     
     public void search(TreeMap<String, byte[]> array, TreeMap<String, byte[]> table, byte[][] tw){
         byte[] gamma = tw[0];
-        int pos = fromByteArray(gamma);
+        byte[] neta = tw[1];
+        
+        String stgamma = Util.hexArray(gamma);
+        
+        byte[] tita = table.get(stgamma);
+        
+        byte[]value = new byte[tita.length];
+        
+        for(int i=0; i<neta.length; i++){
+            value[i] = (byte) (neta[i] ^ tita[i]);
+        }
+        
+        byte[] alfa = new byte[4];
+        for(int i=0; i<4; i++){
+            alfa[i] = value[i];
+        }
+        
+        byte[] bkey = new byte[value.length-4];
+        for(int i=4; i<value.length;i++){
+            bkey[i-4] = value[i];
+        }
+        
+        Key key = new SecretKeySpec(bkey, "AES");
+        
+        byte[] node = array.get(Util.hexArray(alfa));
         
     }
     
-    private int fromByteArray(byte[] bytes) {
-        return bytes[0] << 24 | (bytes[1] & 0xFF) << 16 | (bytes[2] & 0xFF) << 8 | (bytes[3] & 0xFF);
-    }
 }
