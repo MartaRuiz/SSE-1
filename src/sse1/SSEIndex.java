@@ -274,18 +274,25 @@ public class SSEIndex {
             bkey[i-4] = value[i];
         }
         
-        Key key = new SecretKeySpec(bkey, "AES");
-        ske1.init(Cipher.DECRYPT_MODE, key);
+        int size = bkey.length;
+        
+        byte[] id = null;
         
         while(alfa!=null){
+            Key key = new SecretKeySpec(bkey, "AES");
+            ske1.init(Cipher.DECRYPT_MODE, key);
+            
             byte[] enode = array.get(Util.hexArray(alfa));
             byte[] node = ske1.doFinal(enode);
             
-            for(int i = node.length-3; i<node.length;i++){
+            /*for(int i = node.length-4; i<node.length;i++){
                     int j=0;
                     alfa[j] = node[i];
                     j++;
-            }           
+            }*/   
+            System.arraycopy(node, node.length-4, alfa, 0, 4);
+            System.arraycopy(node, node.length-4-size, bkey, 0, size);
+            System.arraycopy(node, 0, id, 0, node.length-size-4);
         }  
         
     }
