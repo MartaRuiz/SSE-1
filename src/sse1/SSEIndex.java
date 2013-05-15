@@ -250,7 +250,7 @@ public class SSEIndex {
         return tw;
     }
     
-    public void search(TreeMap<String, byte[]> array, TreeMap<String, byte[]> table, byte[][] tw){
+    public void search(TreeMap<String, byte[]> array, TreeMap<String, byte[]> table, byte[][] tw) throws InvalidKeyException, IllegalBlockSizeException, BadPaddingException{
         byte[] gamma = tw[0];
         byte[] neta = tw[1];
         
@@ -275,8 +275,18 @@ public class SSEIndex {
         }
         
         Key key = new SecretKeySpec(bkey, "AES");
+        ske1.init(Cipher.DECRYPT_MODE, key);
         
-        byte[] node = array.get(Util.hexArray(alfa));
+        while(alfa!=null){
+            byte[] enode = array.get(Util.hexArray(alfa));
+            byte[] node = ske1.doFinal(enode);
+            
+            for(int i = node.length-3; i<node.length;i++){
+                    int j=0;
+                    alfa[j] = node[i];
+                    j++;
+            }           
+        }  
         
     }
     
