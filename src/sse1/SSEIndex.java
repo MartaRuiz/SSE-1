@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.Key;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.Random;
@@ -67,6 +68,8 @@ public class SSEIndex {
         
         Keys K = new Keys();
         Key[] aKeys = K.gen(k, l);
+        
+        byte[][] tw = null;
         
         //2. Build array A
         Map<String, byte[]> array = new TreeMap<String, byte[]>(); 
@@ -132,6 +135,9 @@ public class SSEIndex {
         System.out.println("Num keywords: "+index.numberOfKeywords());
         System.out.println("Num nodos del indice: " + ctr);
         System.out.println("Size array KBytes: " + (sizeBytes/1024));
+        
+        tw = trapdoor("la",aKeys[2], aKeys[1]);
+        search(array, table, tw);
     }
 
     private static byte[] createNode(String idDoc, Key key, int i) {
@@ -238,7 +244,7 @@ public class SSEIndex {
         //return x;
     }
     
-    public byte[][] trapdoor(String word, Key z, Key y) throws Exception{
+    public static byte[][] trapdoor(String word, Key z, Key y) throws Exception{
         byte[] wordToB = word.getBytes();
         
         byte[] fy = funcionPseudoAleatoria(y, wordToB);
@@ -250,7 +256,7 @@ public class SSEIndex {
         return tw;
     }
     
-    public void search(TreeMap<String, byte[]> array, TreeMap<String, byte[]> table, byte[][] tw) throws InvalidKeyException, IllegalBlockSizeException, BadPaddingException{
+    public static void search(Map<String, byte[]> array, Map<String, byte[]> table, byte[][] tw) throws InvalidKeyException, IllegalBlockSizeException, BadPaddingException{
         byte[] gamma = tw[0];
         byte[] neta = tw[1];
         
@@ -279,6 +285,8 @@ public class SSEIndex {
         byte[] id = null;
         
         while(alfa!=null){
+            ArrayList<String> list = new ArrayList<String>();
+            
             Key key = new SecretKeySpec(bkey, "AES");
             ske1.init(Cipher.DECRYPT_MODE, key);
             
@@ -290,9 +298,17 @@ public class SSEIndex {
                     alfa[j] = node[i];
                     j++;
             }*/   
+            
             System.arraycopy(node, node.length-4, alfa, 0, 4);
             System.arraycopy(node, node.length-4-size, bkey, 0, size);
             System.arraycopy(node, 0, id, 0, node.length-size-4);
+      
+            list.add( id.toString());
+            
+            for(String w:list){
+                System.out.println(w + "--");
+            }
+            
         }  
         
     }
