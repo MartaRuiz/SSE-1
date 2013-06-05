@@ -11,6 +11,7 @@ import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.Key;
 import java.security.NoSuchAlgorithmException;
+import java.security.spec.InvalidParameterSpecException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Map;
@@ -23,6 +24,7 @@ import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.KeyGenerator;
 import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SecretKey;
+import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 
 /**
@@ -33,6 +35,8 @@ public class SSEIndex {
     
     static KeyGenerator ske1gen, ske2gen;
     static Cipher ske1, randF, ske2;
+    static byte[] iv = new byte[] {0x0,0x1,0x2,0x3,0x4,0x5,0x6,0x7,0x8,0x9,0xA,0xB,0xC,0xD,0xE,0xF };
+
     
     public static void main(String[] args) throws FileNotFoundException, IOException, InvalidKeyException, IllegalBlockSizeException, InvalidAlgorithmParameterException, BadPaddingException, Exception {
         
@@ -46,7 +50,7 @@ public class SSEIndex {
         ske1gen = KeyGenerator.getInstance("AES");
         ske1gen.init(k);
         
-        ske1 = Cipher.getInstance("AES/CTR/NoPadding");
+        ske1 = Cipher.getInstance("AES/OFB/PKCS5Padding");
         
         File f = new File("prueba1"); // Creamos un objeto file
         String path = f.getAbsolutePath(); // Llamamos al método que devuelve la ruta absoluta
@@ -88,7 +92,8 @@ public class SSEIndex {
             
             
             byte[] entry = tableEntry(keyword,aKeys[1],firstAddress, prevKey);
-            table.put(Util.hexArray(getAddress(keyword)), entry);
+            byte[] address = getAddress(keyword);
+            table.put(Util.hexArray(address), entry);
             
             TreeSet<Document> docsKeyword = index.getDocuments(keyword);
             
@@ -138,7 +143,7 @@ public class SSEIndex {
         System.out.println("Num nodos del indice: " + ctr);
         System.out.println("Size array KBytes: " + (sizeBytes/1024));
         
-        tw = trapdoor("la",aKeys[2], aKeys[1]);
+        tw = trapdoor("montaraz",aKeys[2], aKeys[1]);
         search(array, table, tw);
     }
 
@@ -240,16 +245,17 @@ public class SSEIndex {
 
     public static byte[] funcionPseudoAleatoria(Key k, byte[] x) throws Exception{
         
-        randF = Cipher.getInstance("AES/CTR/NoPadding");
+        /*randF = Cipher.getInstance("AES/CTR/NoPadding");
         randF.init(Cipher.ENCRYPT_MODE, k);//new IvParameterSpec(randF.getIV()));
-        return randF.doFinal(x);
-        //return x;
+        return randF.doFinal(x);*/
+        return x;
     }
     
     public static byte[][] trapdoor(String word, Key z, Key y) throws Exception{
         byte[] wordToB = word.getBytes();
+        byte[] keyword = Arrays.copyOf(wordToB, 20);
         
-        byte[] fy = funcionPseudoAleatoria(y, wordToB);
+        byte[] fy = funcionPseudoAleatoria(y, keyword);
         
         byte[] piz = getAddress(word);
         
@@ -258,7 +264,7 @@ public class SSEIndex {
         return tw;
     }
     
-    public static void search(Map<String, byte[]> array, Map<String, byte[]> table, byte[][] tw) throws InvalidKeyException, IllegalBlockSizeException, BadPaddingException, NoSuchAlgorithmException, NoSuchPaddingException{
+    public static void search(Map<String, byte[]> array, Map<String, byte[]> table, byte[][] tw) throws InvalidKeyException, IllegalBlockSizeException, BadPaddingException, NoSuchAlgorithmException, NoSuchPaddingException, InvalidAlgorithmParameterException, InvalidParameterSpecException{
         byte[] gamma = tw[0];
         byte[] neta = tw[1];
         
@@ -283,18 +289,23 @@ public class SSEIndex {
         }
         
         int size = bkey.length;
+        Key key;
         
         byte[] id = null;
         
         while(alfa!=null){
             ArrayList<String> list = new ArrayList<String>();
             
-            Key key = new SecretKeySpec(bkey, "AES");
+            key = new SecretKeySpec(bkey, "AES");
             
-            Cipher c = Cipher.getInstance("AES");
-            c.init(Cipher.DECRYPT_MODE, key);
+                
+            IvParameterSpec ivParameterSpec = new IvParameterSpec(iv);
             
-            byte[] enode = array.get(Util.hexArray(alfa));
+            Cipher c = Cipher.getInstance("AES/OFB/PKCS5Padding"); 
+            c.init(Cipher.DECRYPT_MODE, key, ivParameterSpec);
+            
+            String salfa = Util.hexArray(alfa);
+            byte[] enode = array.get(salfa);
             byte[] node = c.doFinal(enode);
             
             /*for(int i = node.length-4; i<node.length;i++){
