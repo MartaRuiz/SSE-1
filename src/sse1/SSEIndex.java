@@ -7,6 +7,7 @@ package sse1;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.Key;
@@ -24,6 +25,7 @@ import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.KeyGenerator;
 import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SecretKey;
+import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 
@@ -88,8 +90,9 @@ public class SSEIndex {
             
             byte[] firstAddress = getAddress(ctr);
             
-            Key prevKey = ske1gen.generateKey(); 
-            
+            //Key prevKey = ske1gen.generateKey(); 
+            //KeyFactory kf = SecretKeyFactory.getInstance("AES");
+            SecretKeySpec prevKey = new SecretKeySpec(iv, "AES");
             
             byte[] entry = tableEntry(keyword,aKeys[1],firstAddress, prevKey);
             byte[] address = getAddress(keyword);
@@ -99,11 +102,16 @@ public class SSEIndex {
             
             //Creating the list
             for(Document idDoc:docsKeyword){
-                SecretKey key = ske1gen.generateKey();
+                //SecretKey key = ske1gen.generateKey();
+                //SecretKeyFactory kf = SecretKeyFactory.getInstance("AES");
+                SecretKeySpec key = new SecretKeySpec(iv, "AES");
+                
                 
                 byte[] node = createNode(idDoc.getId(), key, ctr+1);
+
+                IvParameterSpec ivParameterSpec = new IvParameterSpec(iv);
                 
-                ske1.init(Cipher.ENCRYPT_MODE, prevKey);
+                ske1.init(Cipher.ENCRYPT_MODE, prevKey, ivParameterSpec);
                 byte[] cNode = ske1.doFinal(node);
 
                 byte[] addr = getAddress(ctr);
@@ -121,11 +129,14 @@ public class SSEIndex {
             }
             // Last node
             Document lastDoc = docsKeyword.pollLast();
-            SecretKey key = ske1gen.generateKey();
+            //SecretKey key = ske1gen.generateKey();
+            SecretKeySpec key = new SecretKeySpec(iv, "AES");
 
             byte[] node = createNode(lastDoc.getId(), key, 0);
 
-            ske1.init(Cipher.ENCRYPT_MODE, prevKey);//, new IvParameterSpec(ske1.getIV()));
+            IvParameterSpec ivParameterSpec = new IvParameterSpec(iv);
+            
+            ske1.init(Cipher.ENCRYPT_MODE, prevKey, ivParameterSpec);//, new IvParameterSpec(ske1.getIV()));
             byte[] cNode = ske1.doFinal(node);
             byte[] addr = getAddress(ctr);
 
@@ -142,9 +153,18 @@ public class SSEIndex {
         System.out.println("Num keywords: "+index.numberOfKeywords());
         System.out.println("Num nodos del indice: " + ctr);
         System.out.println("Size array KBytes: " + (sizeBytes/1024));
+  
+        System.out.println("");
+        System.out.println("####Search####");
+        System.out.println("");
         
-        tw = trapdoor("montaraz",aKeys[2], aKeys[1]);
-        search(array, table, tw);
+        for(String keyword : index.getKeywords()){
+            System.out.println(keyword);
+            System.out.println("########");
+            tw = trapdoor(keyword,aKeys[2], aKeys[1]);
+            search(array, table, tw);
+        }
+        
     }
 
     private static byte[] createNode(String idDoc, Key key, int i) {
@@ -264,7 +284,8 @@ public class SSEIndex {
         return tw;
     }
     
-    public static void search(Map<String, byte[]> array, Map<String, byte[]> table, byte[][] tw) throws InvalidKeyException, IllegalBlockSizeException, BadPaddingException, NoSuchAlgorithmException, NoSuchPaddingException, InvalidAlgorithmParameterException, InvalidParameterSpecException{
+    public static void search(Map<String, byte[]> array, Map<String, byte[]> table, byte[][] tw) throws InvalidKeyException, IllegalBlockSizeException, BadPaddingException, NoSuchAlgorithmException, NoSuchPaddingException, InvalidAlgorithmParameterException, InvalidParameterSpecException, UnsupportedEncodingException{
+
         byte[] gamma = tw[0];
         byte[] neta = tw[1];
         
@@ -291,10 +312,12 @@ public class SSEIndex {
         int size = bkey.length;
         Key key;
         
-        byte[] id = null;
+        byte[] id = new byte[16];
+        byte [] a = {0, 0, 0, 0};
         
-        while(alfa!=null){
-            ArrayList<String> list = new ArrayList<String>();
+        ArrayList<String> list = new ArrayList<String>();
+        
+        while(!Arrays.equals(alfa, a)){  
             
             key = new SecretKeySpec(bkey, "AES");
             
@@ -318,14 +341,18 @@ public class SSEIndex {
             System.arraycopy(node, node.length-4-size, bkey, 0, size);
             System.arraycopy(node, 0, id, 0, node.length-size-4);
       
-            list.add( id.toString());
+            String idS = new String (id, "UTF8");
             
-            for(String w:list){
-                System.out.println(w + "--");
-            }
+            list.add(idS);
             
         }  
         
+        list.remove(list.size()-1);
+        for(String w:list){
+                System.out.println(w);
+        }
+        
+         System.out.println("");
     }
     
 }
