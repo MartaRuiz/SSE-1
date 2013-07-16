@@ -91,7 +91,7 @@ public class SSEIndex {
             byte[] firstAddress = getAddress(ctr);
             
             //Key prevKey = ske1gen.generateKey(); 
-            //KeyFactory kf = SecretKeyFactory.getInstance("AES");
+            
             SecretKeySpec prevKey = new SecretKeySpec(iv, "AES");
             
             byte[] entry = tableEntry(keyword,aKeys[1],firstAddress, prevKey);
@@ -99,15 +99,20 @@ public class SSEIndex {
             table.put(Util.hexArray(address), entry);
             
             TreeSet<Document> docsKeyword = index.getDocuments(keyword);
-            
-            //Creating the list
+            ArrayList<Document> list = new ArrayList<Document>();
             for(Document idDoc:docsKeyword){
-                //SecretKey key = ske1gen.generateKey();
-                //SecretKeyFactory kf = SecretKeyFactory.getInstance("AES");
+                list.add(idDoc);
+            }
+            int size = docsKeyword.size();
+            //Creating the list
+            for(int i=0;i<size-1;i++){
+                
+                //Key kf = ske1gen.generateKey();
+                
                 SecretKeySpec key = new SecretKeySpec(iv, "AES");
                 
-                
-                byte[] node = createNode(idDoc.getId(), key, ctr+1);
+                String id = list.get(i).getId();
+                byte[] node = createNode(id, key, ctr+1);
 
                 IvParameterSpec ivParameterSpec = new IvParameterSpec(iv);
                 
@@ -129,7 +134,8 @@ public class SSEIndex {
             }
             // Last node
             Document lastDoc = docsKeyword.pollLast();
-            //SecretKey key = ske1gen.generateKey();
+            
+            //Key[] kf = ske1gen.generateKey();
             SecretKeySpec key = new SecretKeySpec(iv, "AES");
 
             byte[] node = createNode(lastDoc.getId(), key, 0);
@@ -347,7 +353,7 @@ public class SSEIndex {
             
         }  
         
-        list.remove(list.size()-1);
+        //list.remove(list.size()-1);
         for(String w:list){
                 System.out.println(w);
         }
