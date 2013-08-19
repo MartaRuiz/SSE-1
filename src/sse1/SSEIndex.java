@@ -50,6 +50,7 @@ public class SSEIndex {
         
         
         ske1gen = KeyGenerator.getInstance("AES");
+        
         ske1gen.init(k);
         
         ske1 = Cipher.getInstance("AES/OFB/PKCS5Padding");
@@ -92,7 +93,8 @@ public class SSEIndex {
             
             //Key prevKey = ske1gen.generateKey(); 
             
-            SecretKeySpec prevKey = new SecretKeySpec(iv, "AES");
+            //SecretKeySpec prevKey = new SecretKeySpec(iv, "AES");
+            SecretKeySpec prevKey = new SecretKeySpec(generateKey(), "AES");
             
             byte[] entry = tableEntry(keyword,aKeys[1],firstAddress, prevKey);
             byte[] address = getAddress(keyword);
@@ -109,7 +111,8 @@ public class SSEIndex {
                 
                 //Key kf = ske1gen.generateKey();
                 
-                SecretKeySpec key = new SecretKeySpec(iv, "AES");
+                //SecretKeySpec key = new SecretKeySpec(iv, "AES");
+                SecretKeySpec key = new SecretKeySpec(generateKey(), "AES");
                 
                 String id = list.get(i).getId();
                 byte[] node = createNode(id, key, ctr+1);
@@ -136,7 +139,8 @@ public class SSEIndex {
             Document lastDoc = docsKeyword.pollLast();
             
             //Key[] kf = ske1gen.generateKey();
-            SecretKeySpec key = new SecretKeySpec(iv, "AES");
+            //SecretKeySpec key = new SecretKeySpec(iv, "AES");
+            SecretKeySpec key = new SecretKeySpec(generateKey(), "AES");
 
             byte[] node = createNode(lastDoc.getId(), key, 0);
 
@@ -361,4 +365,9 @@ public class SSEIndex {
          System.out.println("");
     }
     
+    public static byte[] generateKey(){
+        byte[] key = new byte[16];
+        new Random().nextBytes(key);
+        return key;
+    }
 }
