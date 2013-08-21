@@ -84,6 +84,8 @@ public class SSEIndex {
         Map<String, byte[]> array = new TreeMap<String, byte[]>(); 
         Map<String, byte[]> table = new TreeMap<String, byte[]>();
         
+        byte[] gkey = generateKey();
+        
         for (String keyword : index.getKeywords()){//build linked list Li with nodes Ni,j and store it in array A
             System.out.println("#####################");
             System.out.println(keyword);
@@ -94,7 +96,7 @@ public class SSEIndex {
             //Key prevKey = ske1gen.generateKey(); 
             
             //SecretKeySpec prevKey = new SecretKeySpec(iv, "AES");
-            SecretKeySpec prevKey = new SecretKeySpec(generateKey(), "AES");
+            SecretKeySpec prevKey = new SecretKeySpec(gkey, "AES");
             
             byte[] entry = tableEntry(keyword,aKeys[1],firstAddress, prevKey);
             byte[] address = getAddress(keyword);
@@ -107,12 +109,14 @@ public class SSEIndex {
             }
             int size = docsKeyword.size();
             //Creating the list
+            
+            
             for(int i=0;i<size-1;i++){
                 
                 //Key kf = ske1gen.generateKey();
                 
                 //SecretKeySpec key = new SecretKeySpec(iv, "AES");
-                SecretKeySpec key = new SecretKeySpec(generateKey(), "AES");
+                SecretKeySpec key = new SecretKeySpec(gkey, "AES");
                 
                 String id = list.get(i).getId();
                 byte[] node = createNode(id, key, ctr+1);
@@ -140,7 +144,7 @@ public class SSEIndex {
             
             //Key[] kf = ske1gen.generateKey();
             //SecretKeySpec key = new SecretKeySpec(iv, "AES");
-            SecretKeySpec key = new SecretKeySpec(generateKey(), "AES");
+            SecretKeySpec key = new SecretKeySpec(gkey, "AES");
 
             byte[] node = createNode(lastDoc.getId(), key, 0);
 
